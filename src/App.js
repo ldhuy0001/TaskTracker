@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./App.css";
 import "@aws-amplify/ui-react/styles.css";
 import { API } from "aws-amplify";
-import { sort } from 'ramda'; // Import the sort function
+import { sort, ascend, descend, prop, pipe } from 'ramda'; // Import the sort function
 import { 
   Button,
   Flex,
@@ -29,6 +29,7 @@ const App = ({ signOut }) => {
   const [username, setUsername] = useState('');
   const [dueDate, setDueDate] = useState(null);
   const [sortCriteria, setSortCriteria] = useState('status'); // Initialize the sort criteria state variable
+  const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
     fetchNotes();
@@ -41,27 +42,48 @@ const App = ({ signOut }) => {
   //   setNotes(notesFromAPI);
   // }
 
-  // Sort the notes array based on the selected sorting criteria
   const sortedNotes = sort(
-  (noteA, noteB) => {
-    // Compare the sorting criteria
-    if (sortCriteria === 'status') {
-      // Sort by status field
-      if (noteA.status !== noteB.status) {
-        return noteA.status.localeCompare(noteB.status);
+    (noteA, noteB) => {
+      if (sortCriteria === 'status') {
+        return (sortOrder === 'asc')
+          ? noteA.status.localeCompare(noteB.status)
+          : noteB.status.localeCompare(noteA.status);
+      } else if (sortCriteria === 'dueDate') {
+        return (sortOrder === 'asc')
+          ? noteA.dueDate.localeCompare(noteB.dueDate)
+          : noteB.dueDate.localeCompare(noteA.dueDate);
+      } else if (sortCriteria === 'title') {
+        return (sortOrder === 'asc')
+          ? noteA.name.localeCompare(noteB.name)
+          : noteB.name.localeCompare(noteA.name);
       }
-    } else if (sortCriteria === 'dueDate') {
-      // Sort by dueDate field
-      if (noteA.dueDate !== noteB.dueDate) {
-        return noteA.dueDate.localeCompare(noteB.dueDate);
-      }
-    }
+      return 0;
+    },
+    notes
+  );
 
-    // If the sorting criteria is not matched or the fields are equal, maintain the current order
-    return 0;
-  },
-  notes
-);
+
+  // // Sort the notes array based on the selected sorting criteria
+  // const sortedNotes = sort(
+  //   (noteA, noteB) => {
+  //     // Compare the sorting criteria
+  //     if (sortCriteria === 'status') {
+  //       // Sort by status field
+  //       if (noteA.status !== noteB.status) {
+  //         return noteA.status.localeCompare(noteB.status);
+  //       }
+  //     } else if (sortCriteria === 'dueDate') {
+  //       // Sort by dueDate field
+  //       if (noteA.dueDate !== noteB.dueDate) {
+  //         return noteA.dueDate.localeCompare(noteB.dueDate);
+  //       }
+  //     }
+
+  //     // If the sorting criteria is not matched or the fields are equal, maintain the current order
+  //     return 0;
+  //   },
+  //   notes
+  // );
 
   async function fetchNotes() {
     try {
@@ -211,20 +233,36 @@ const App = ({ signOut }) => {
       <Heading level={2}>Current Tasks</Heading>
       <View margin="3rem 0">
         <Flex direction="row" justifyContent="center" marginBottom="1rem">
-          <Button
-            variation="link"
-            onClick={() => setSortCriteria('status')}
-            isActive={sortCriteria === 'status'}
-          >
-            Sort by Status
-          </Button>
-          <Button
-            variation="link"
-            onClick={() => setSortCriteria('dueDate')}
-            isActive={sortCriteria === 'dueDate'}
-          >
-            Sort by Due Date
-          </Button>
+        <Button
+      variation="link"
+      onClick={() => {
+        setSortCriteria('title');
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      }}
+      isActive={sortCriteria === 'title'}
+    >
+      Sort by Title ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
+    </Button>
+        <Button
+      variation="link"
+      onClick={() => {
+        setSortCriteria('status');
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      }}
+      isActive={sortCriteria === 'status'}
+    >
+      Sort by Status ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
+    </Button>
+    <Button
+      variation="link"
+      onClick={() => {
+        setSortCriteria('dueDate');
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      }}
+      isActive={sortCriteria === 'dueDate'}
+    >
+      Sort by Due Date ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
+    </Button>
         </Flex>
         {sortedNotes.map((note) => (
           <Flex

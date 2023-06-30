@@ -11,6 +11,7 @@ import {
   View,
   withAuthenticator,
 } from "@aws-amplify/ui-react";
+import { Auth } from 'aws-amplify';
 import { listNotes } from "./graphql/queries";
 import {
   createNote as createNoteMutation,
@@ -19,15 +20,39 @@ import {
 
 const App = ({ signOut }) => {
   const [notes, setNotes] = useState([]);
+  const [userEmail, setUserEmail] = useState('');
+  const [username, setUsername] = useState('');
 
   useEffect(() => {
     fetchNotes();
+    fetchCurrentUser();
   }, []);
 
   async function fetchNotes() {
-    const apiData = await API.graphql({ query: listNotes });
-    const notesFromAPI = apiData.data.listNotes.items;
-    setNotes(notesFromAPI);
+    try {
+      const user = await Auth.currentAuthenticatedUser();
+      const username = user.username;
+      const apiData = await API.graphql({
+        query: listNotes,
+        variables: { username: username }
+      });
+      const notesFromAPI = apiData.data.listNotes.items;
+      setNotes(notesFromAPI);
+    } catch (error) {
+      console.log('Error:', error);
+    }
+  }
+
+  async function fetchCurrentUser() {
+    try {
+      const user = await Auth.currentAuthenticatedUser();
+      const email = user.attributes.email;
+      const username = user.username;
+      setUserEmail(email);
+      setUsername(username);
+    } catch (error) {
+      console.log('Error:', error);
+    }
   }
 
   async function createNote(event) {
@@ -36,6 +61,7 @@ const App = ({ signOut }) => {
     const data = {
       name: form.get("name"),
       description: form.get("description"),
+      username: username
     };
     await API.graphql({
       query: createNoteMutation,
@@ -53,6 +79,18 @@ const App = ({ signOut }) => {
       variables: { input: { id } },
     });
   }
+
+  Auth.currentAuthenticatedUser()
+  .then(user => {
+    // Access the user's email from the user object
+    const email = user.attributes.email;
+    console.log('User email:', email);
+    const username = user.username;
+    console.log('username',username)
+  })
+  .catch(error => {
+    console.log('Error:', error);
+  });
 
   return (
     <View className="App">
@@ -99,6 +137,8 @@ const App = ({ signOut }) => {
           </Flex>
         ))}
       </View>
+      <Text>User email: {userEmail}</Text>
+      <Text>Username: {username}</Text>
       <Button onClick={signOut}>Sign Out</Button>
     </View>
   );

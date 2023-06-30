@@ -4,6 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./App.css";
 import "@aws-amplify/ui-react/styles.css";
 import { API } from "aws-amplify";
+import { sort } from 'ramda'; // Import the sort function
 import { 
   Button,
   Flex,
@@ -27,6 +28,7 @@ const App = ({ signOut }) => {
   const [userEmail, setUserEmail] = useState('');
   const [username, setUsername] = useState('');
   const [dueDate, setDueDate] = useState(null);
+  const [sortCriteria, setSortCriteria] = useState('status'); // Initialize the sort criteria state variable
 
   useEffect(() => {
     fetchNotes();
@@ -38,6 +40,28 @@ const App = ({ signOut }) => {
   //   const notesFromAPI = apiData.data.listNotes.items;
   //   setNotes(notesFromAPI);
   // }
+
+  // Sort the notes array based on the selected sorting criteria
+  const sortedNotes = sort(
+  (noteA, noteB) => {
+    // Compare the sorting criteria
+    if (sortCriteria === 'status') {
+      // Sort by status field
+      if (noteA.status !== noteB.status) {
+        return noteA.status.localeCompare(noteB.status);
+      }
+    } else if (sortCriteria === 'dueDate') {
+      // Sort by dueDate field
+      if (noteA.dueDate !== noteB.dueDate) {
+        return noteA.dueDate.localeCompare(noteB.dueDate);
+      }
+    }
+
+    // If the sorting criteria is not matched or the fields are equal, maintain the current order
+    return 0;
+  },
+  notes
+);
 
   async function fetchNotes() {
     try {
@@ -186,7 +210,23 @@ const App = ({ signOut }) => {
       </View>
       <Heading level={2}>Current Tasks</Heading>
       <View margin="3rem 0">
-        {notes.map((note) => (
+        <Flex direction="row" justifyContent="center" marginBottom="1rem">
+          <Button
+            variation="link"
+            onClick={() => setSortCriteria('status')}
+            isActive={sortCriteria === 'status'}
+          >
+            Sort by Status
+          </Button>
+          <Button
+            variation="link"
+            onClick={() => setSortCriteria('dueDate')}
+            isActive={sortCriteria === 'dueDate'}
+          >
+            Sort by Due Date
+          </Button>
+        </Flex>
+        {sortedNotes.map((note) => (
           <Flex
             key={note.id || note.name}
             direction="row"

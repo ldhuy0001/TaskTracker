@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "./App.css";
 import "@aws-amplify/ui-react/styles.css";
 import { API } from "aws-amplify";
-import {
+import { 
   Button,
   Flex,
-  Heading,
-  Text,
-  TextField,
-  View,
-  withAuthenticator,
+  Heading, 
+  Text, 
+  TextField, 
+  View, 
+  withAuthenticator, 
 } from "@aws-amplify/ui-react";
+
 import { Auth } from 'aws-amplify';
 import { listNotes } from "./graphql/queries";
 import {
@@ -22,6 +25,7 @@ const App = ({ signOut }) => {
   const [notes, setNotes] = useState([]);
   const [userEmail, setUserEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [dueDate, setDueDate] = useState(null);
 
   useEffect(() => {
     fetchNotes();
@@ -68,7 +72,9 @@ const App = ({ signOut }) => {
     const data = {
       name: form.get("name"),
       description: form.get("description"),
-      username: username
+      username: username,
+      status: form.get("status"), // Added status field
+      dueDate: form.get("dueDate"), // Added dueDate field
     };
     await API.graphql({
       query: createNoteMutation,
@@ -118,6 +124,21 @@ const App = ({ signOut }) => {
             label="Note Description"
             labelHidden
             variation="quiet"
+            required
+          />
+          <div>
+            <label htmlFor="status">Status</label>
+            <select name="status" id="status" required>
+              <option value="Completed">Completed</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
+          <DatePicker
+            name="dueDate"
+            id="dueDate"
+            selected={dueDate}
+            onChange={(date) => setDueDate(date)}
             required
           />
           <Button type="submit" variation="primary">

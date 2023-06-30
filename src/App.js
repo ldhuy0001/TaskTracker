@@ -28,13 +28,19 @@ const App = ({ signOut }) => {
     fetchCurrentUser();
   }, []);
 
+  // async function fetchNotes() {
+  //   const apiData = await API.graphql({ query: listNotes });
+  //   const notesFromAPI = apiData.data.listNotes.items;
+  //   setNotes(notesFromAPI);
+  // }
+
   async function fetchNotes() {
     try {
       const user = await Auth.currentAuthenticatedUser();
       const username = user.username;
       const apiData = await API.graphql({
         query: listNotes,
-        variables: { username: username }
+        variables: { filter: { username: { eq: username } } }
       });
       const notesFromAPI = apiData.data.listNotes.items;
       setNotes(notesFromAPI);
@@ -42,6 +48,7 @@ const App = ({ signOut }) => {
       console.log('Error:', error);
     }
   }
+  
 
   async function fetchCurrentUser() {
     try {

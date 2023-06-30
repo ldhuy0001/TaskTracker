@@ -21,7 +21,9 @@ import { listNotes } from "./graphql/queries";
 import {
   createNote as createNoteMutation,
   deleteNote as deleteNoteMutation,
+  updateNote as updateNoteMutation, // Added updateNoteMutation
 } from "./graphql/mutations";
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 
 const App = ({ signOut }) => {
   const [notes, setNotes] = useState([]);
@@ -30,17 +32,13 @@ const App = ({ signOut }) => {
   const [dueDate, setDueDate] = useState(null);
   const [sortCriteria, setSortCriteria] = useState('status'); // Initialize the sort criteria state variable
   const [sortOrder, setSortOrder] = useState('asc');
+  const [editTask, setEditTask] = useState(null); // Added editTask state
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false); // Added isEditFormOpen state
 
   useEffect(() => {
     fetchNotes();
     fetchCurrentUser();
   }, []);
-
-  // async function fetchNotes() {
-  //   const apiData = await API.graphql({ query: listNotes });
-  //   const notesFromAPI = apiData.data.listNotes.items;
-  //   setNotes(notesFromAPI);
-  // }
 
   const sortedNotes = sort(
     (noteA, noteB) => {
@@ -62,29 +60,6 @@ const App = ({ signOut }) => {
     notes
   );
 
-
-  // // Sort the notes array based on the selected sorting criteria
-  // const sortedNotes = sort(
-  //   (noteA, noteB) => {
-  //     // Compare the sorting criteria
-  //     if (sortCriteria === 'status') {
-  //       // Sort by status field
-  //       if (noteA.status !== noteB.status) {
-  //         return noteA.status.localeCompare(noteB.status);
-  //       }
-  //     } else if (sortCriteria === 'dueDate') {
-  //       // Sort by dueDate field
-  //       if (noteA.dueDate !== noteB.dueDate) {
-  //         return noteA.dueDate.localeCompare(noteB.dueDate);
-  //       }
-  //     }
-
-  //     // If the sorting criteria is not matched or the fields are equal, maintain the current order
-  //     return 0;
-  //   },
-  //   notes
-  // );
-
   async function fetchNotes() {
     try {
       const user = await Auth.currentAuthenticatedUser();
@@ -104,27 +79,11 @@ const App = ({ signOut }) => {
       console.log("Due Date:", items[0].dueDate);
       console.log("Response Data:", apiData.data);
 
-
-
       setNotes(notesFromAPI);
     } catch (error) {
       console.log('Error:', error);
     }
   }
-
-
-
-  // async function fetchNotes() {
-  //   const user = await Auth.currentAuthenticatedUser();
-  //   const username = user.username;
-  //   const apiData = await API.graphql({ query: listNotes,
-  //     variables: { filter: { username: { eq: username } } }
-  //   });
-  //   const notesFromAPI = apiData.data.listNotes.items;
-  
-  //   setNotes(notesFromAPI);
-  // }
-  
 
   async function fetchCurrentUser() {
     try {
@@ -155,13 +114,31 @@ const App = ({ signOut }) => {
     console.log("Due Date:", dueDate);
     console.log("data send to server",data)
 
+    if (editTask) {
+      // Update existing task
+      await API.graphql({
+        query: updateNoteMutation,
+        variables: {
+          input: {
+            id: editTask.id,
+            ...data
+          }
+        },
+      });
+      setEditTask(null);
+      setIsEditFormOpen(false);
+      setDueDate(null);
+    } else {
+      // Create new task
+      await API.graphql({
+        query: createNoteMutation,
+        variables: { input: data },
+      });
+    }
 
-    await API.graphql({
-      query: createNoteMutation,
-      variables: { input: data },
-    });
     fetchNotes();
     setDueDate(null); // Reset the dueDate sta
+
     event.target.reset();
   }
 
@@ -172,6 +149,18 @@ const App = ({ signOut }) => {
       query: deleteNoteMutation,
       variables: { input: { id } },
     });
+  }
+
+  function editNoteTask(note) {
+    setEditTask(note);
+    setIsEditFormOpen(true);
+    setDueDate(new Date(note.dueDate));
+  }
+
+  function cancelEdit() {
+    setEditTask(null);
+    setIsEditFormOpen(false);
+    setDueDate(null);
   }
 
   Auth.currentAuthenticatedUser()
@@ -188,7 +177,7 @@ const App = ({ signOut }) => {
 
   return (
     <View className="App">
-      <Heading level={2}>Hello {username} - Welcome To Task Tracker</Heading>
+      <Heading level={2}>Hello, {username} - Welcome To Task Tracker</Heading>
       <Button onClick={signOut}>Sign Out</Button>
       <View as="form" margin="3rem 0" onSubmit={createNote}>
         <Flex direction="row" justifyContent="center">
@@ -199,6 +188,13 @@ const App = ({ signOut }) => {
             labelHidden
             variation="quiet"
             required
+            value={editTask ? editTask.name : ''}
+            onChange={(event) =>
+              setEditTask((prevTask) => ({
+                ...prevTask,
+                name: event.target.value,
+              }))
+            }
           />
           <TextField
             name="description"
@@ -207,6 +203,13 @@ const App = ({ signOut }) => {
             labelHidden
             variation="quiet"
             required
+            value={editTask ? editTask.description : ''}
+            onChange={(event) =>
+              setEditTask((prevTask) => ({
+                ...prevTask,
+                description: event.target.value,
+              }))
+            }
           />
           <SelectField
             name="status"
@@ -214,6 +217,13 @@ const App = ({ signOut }) => {
             placeholder="Select Status"
             variation="quiet"
             required
+            value={editTask ? editTask.status : ''}
+            onChange={(event) =>
+              setEditTask((prevTask) => ({
+                ...prevTask,
+                status: event.target.value,
+              }))
+            }
           >
             <option value="Completed">Completed</option>
             <option value="In Progress">In Progress</option>
@@ -225,10 +235,21 @@ const App = ({ signOut }) => {
             selected={dueDate}
             onChange={(date) => setDueDate(date)}
             required
-          />
-          <Button type="submit" variation="primary">
-            Create Task
-          </Button>
+          />          
+          {isEditFormOpen ? (
+            <>
+              <Button type="submit" variation="primary">
+                Update Task
+              </Button>
+              <Button type="button" variation="link" onClick={cancelEdit}>
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button type="submit" variation="primary">
+              Create Task
+            </Button>
+          )}
         </Flex>
       </View>
       <Heading level={3}>Your Current Tasks</Heading>
@@ -271,6 +292,7 @@ const App = ({ signOut }) => {
             direction="row"
             justifyContent="center"
             alignItems="center"
+            marginBottom="1rem"
           >
             <Text as="strong" fontWeight={700}>
               {note.name}
@@ -278,13 +300,22 @@ const App = ({ signOut }) => {
             <Text as="span">{note.description}</Text>
             <Text as="span">Status: {note.status}</Text> {/* Display the status field */}
             <Text as="span">Due Date: {note.dueDate}</Text> {/* Display the dueDate field */}
+            <Button
+              type="button"
+              variation="link"
+              onClick={() => editNoteTask(note)}
+            >
+              Edit
+            </Button>
             <Button variation="link" onClick={() => deleteNote(note)}>
               Delete Task
             </Button>
-            
+
+
           </Flex>
         ))}
       </View>
+      
 
     </View>
   );

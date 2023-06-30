@@ -11,7 +11,8 @@ import {
   Text, 
   TextField, 
   View, 
-  withAuthenticator, 
+  withAuthenticator,
+  SelectField,
 } from "@aws-amplify/ui-react";
 
 import { Auth } from 'aws-amplify';
@@ -46,12 +47,37 @@ const App = ({ signOut }) => {
         query: listNotes,
         variables: { filter: { username: { eq: username } } }
       });
+
       const notesFromAPI = apiData.data.listNotes.items;
+
+
+      const { items } = apiData.data.listNotes;
+
+      // Log the first note's status and dueDate
+      console.log("Status:", items[0].status);
+      console.log("Due Date:", items[0].dueDate);
+      console.log("Response Data:", apiData.data);
+
+
+
       setNotes(notesFromAPI);
     } catch (error) {
       console.log('Error:', error);
     }
   }
+
+
+
+  // async function fetchNotes() {
+  //   const user = await Auth.currentAuthenticatedUser();
+  //   const username = user.username;
+  //   const apiData = await API.graphql({ query: listNotes,
+  //     variables: { filter: { username: { eq: username } } }
+  //   });
+  //   const notesFromAPI = apiData.data.listNotes.items;
+  
+  //   setNotes(notesFromAPI);
+  // }
   
 
   async function fetchCurrentUser() {
@@ -76,11 +102,20 @@ const App = ({ signOut }) => {
       status: form.get("status"), // Added status field
       dueDate: form.get("dueDate"), // Added dueDate field
     };
+
+    const status = data.status;
+    const dueDate = data.dueDate;
+    console.log("Status:", status);
+    console.log("Due Date:", dueDate);
+    console.log("data send to server",data)
+
+
     await API.graphql({
       query: createNoteMutation,
       variables: { input: data },
     });
     fetchNotes();
+    setDueDate(null); // Reset the dueDate sta
     event.target.reset();
   }
 
@@ -107,7 +142,7 @@ const App = ({ signOut }) => {
 
   return (
     <View className="App">
-      <Heading level={1}>My Notes App</Heading>
+      <Heading level={1}>Task Tracker</Heading>
       <View as="form" margin="3rem 0" onSubmit={createNote}>
         <Flex direction="row" justifyContent="center">
           <TextField
@@ -126,14 +161,17 @@ const App = ({ signOut }) => {
             variation="quiet"
             required
           />
-          <div>
-            <label htmlFor="status">Status</label>
-            <select name="status" id="status" required>
-              <option value="Completed">Completed</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Pending">Pending</option>
-            </select>
-          </div>
+          <SelectField
+            name="status"
+            label="Status"
+            placeholder="Select Status"
+            variation="quiet"
+            required
+          >
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending">Pending</option>
+          </SelectField>
           <DatePicker
             name="dueDate"
             id="dueDate"
@@ -146,7 +184,7 @@ const App = ({ signOut }) => {
           </Button>
         </Flex>
       </View>
-      <Heading level={2}>Current Notes</Heading>
+      <Heading level={2}>Current Tasks</Heading>
       <View margin="3rem 0">
         {notes.map((note) => (
           <Flex
@@ -159,9 +197,12 @@ const App = ({ signOut }) => {
               {note.name}
             </Text>
             <Text as="span">{note.description}</Text>
+            <Text as="span">Status: {note.status}</Text> {/* Display the status field */}
+            <Text as="span">Due Date: {note.dueDate}</Text> {/* Display the dueDate field */}
             <Button variation="link" onClick={() => deleteNote(note)}>
               Delete note
             </Button>
+            
           </Flex>
         ))}
       </View>

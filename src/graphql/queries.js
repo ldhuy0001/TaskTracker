@@ -7,6 +7,8 @@ export const getNote = /* GraphQL */ `
       id
       name
       description
+      status
+      dueDate
       createdAt
       updatedAt
       __typename
@@ -23,7 +25,9 @@ export const listNotes = /* GraphQL */ `
       items {
         id
         name
-        description
+        description      
+        status
+        dueDate
         createdAt
         updatedAt
         __typename

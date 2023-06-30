@@ -188,12 +188,13 @@ const App = ({ signOut }) => {
 
   return (
     <View className="App">
-      <Heading level={1}>Task Tracker</Heading>
+      <Heading level={2}>Hello {username} - Welcome To Task Tracker</Heading>
+      <Button onClick={signOut}>Sign Out</Button>
       <View as="form" margin="3rem 0" onSubmit={createNote}>
         <Flex direction="row" justifyContent="center">
           <TextField
             name="name"
-            placeholder="Note Name"
+            placeholder="Task Title"
             label="Note Name"
             labelHidden
             variation="quiet"
@@ -201,7 +202,7 @@ const App = ({ signOut }) => {
           />
           <TextField
             name="description"
-            placeholder="Note Description"
+            placeholder="Task Description"
             label="Note Description"
             labelHidden
             variation="quiet"
@@ -209,7 +210,7 @@ const App = ({ signOut }) => {
           />
           <SelectField
             name="status"
-            label="Status"
+            label="Task Status"
             placeholder="Select Status"
             variation="quiet"
             required
@@ -226,43 +227,43 @@ const App = ({ signOut }) => {
             required
           />
           <Button type="submit" variation="primary">
-            Create Note
+            Create Task
           </Button>
         </Flex>
       </View>
-      <Heading level={2}>Current Tasks</Heading>
+      <Heading level={3}>Your Current Tasks</Heading>
       <View margin="3rem 0">
         <Flex direction="row" justifyContent="center" marginBottom="1rem">
-        <Button
-      variation="link"
-      onClick={() => {
-        setSortCriteria('title');
-        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-      }}
-      isActive={sortCriteria === 'title'}
-    >
-      Sort by Title ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
-    </Button>
-        <Button
-      variation="link"
-      onClick={() => {
-        setSortCriteria('status');
-        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-      }}
-      isActive={sortCriteria === 'status'}
-    >
-      Sort by Status ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
-    </Button>
-    <Button
-      variation="link"
-      onClick={() => {
-        setSortCriteria('dueDate');
-        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-      }}
-      isActive={sortCriteria === 'dueDate'}
-    >
-      Sort by Due Date ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
-    </Button>
+          <Button
+            variation="link"
+            onClick={() => {
+              setSortCriteria('title');
+              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+            }}
+            isActive={sortCriteria === 'title'}
+          >
+            Sort by Title ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
+          </Button>
+              <Button
+            variation="link"
+            onClick={() => {
+              setSortCriteria('status');
+              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+            }}
+            isActive={sortCriteria === 'status'}
+          >
+            Sort by Status ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
+          </Button>
+          <Button
+            variation="link"
+            onClick={() => {
+              setSortCriteria('dueDate');
+              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+            }}
+            isActive={sortCriteria === 'dueDate'}
+          >
+            Sort by Due Date ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
+          </Button>
         </Flex>
         {sortedNotes.map((note) => (
           <Flex
@@ -278,15 +279,13 @@ const App = ({ signOut }) => {
             <Text as="span">Status: {note.status}</Text> {/* Display the status field */}
             <Text as="span">Due Date: {note.dueDate}</Text> {/* Display the dueDate field */}
             <Button variation="link" onClick={() => deleteNote(note)}>
-              Delete note
+              Delete Task
             </Button>
             
           </Flex>
         ))}
       </View>
-      <Text>User email: {userEmail}</Text>
-      <Text>Username: {username}</Text>
-      <Button onClick={signOut}>Sign Out</Button>
+
     </View>
   );
 };

@@ -14,6 +14,8 @@ import {
   View, 
   withAuthenticator,
   SelectField,
+  Table,
+  TableCell,
 } from "@aws-amplify/ui-react";
 
 import { Auth } from 'aws-amplify';
@@ -235,7 +237,7 @@ const App = ({ signOut }) => {
             selected={dueDate}
             onChange={(date) => setDueDate(date)}
             required
-          />          
+          />
           {isEditFormOpen ? (
             <>
               <Button type="submit" variation="primary">
@@ -252,6 +254,7 @@ const App = ({ signOut }) => {
           )}
         </Flex>
       </View>
+
       <Heading level={3}>Your Current Tasks</Heading>
       <View margin="3rem 0">
         <Flex direction="row" justifyContent="center" marginBottom="1rem">
@@ -286,34 +289,43 @@ const App = ({ signOut }) => {
             Sort by Due Date ({sortOrder === 'asc' ? 'ASC' : 'DESC'})
           </Button>
         </Flex>
-        {sortedNotes.map((note) => (
-          <Flex
-            key={note.id || note.name}
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-            marginBottom="1rem"
-          >
-            <Text as="strong" fontWeight={700}>
-              {note.name}
-            </Text>
-            <Text as="span">{note.description}</Text>
-            <Text as="span">Status: {note.status}</Text> {/* Display the status field */}
-            <Text as="span">Due Date: {note.dueDate}</Text> {/* Display the dueDate field */}
-            <Button
-              type="button"
-              variation="link"
-              onClick={() => editNoteTask(note)}
-            >
-              Edit
-            </Button>
-            <Button variation="link" onClick={() => deleteNote(note)}>
-              Delete Task
-            </Button>
-
-
-          </Flex>
-        ))}
+        <Table>
+          <thead>
+            <tr>
+              <TableCell><strong>Task Title</strong></TableCell>
+              <TableCell><strong>Description</strong></TableCell>
+              <TableCell><strong>Status</strong></TableCell>
+              <TableCell><strong>Due Date</strong></TableCell>
+              <TableCell><strong>Edit/Delete</strong></TableCell>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedNotes.map((note) => (
+              <tr key={note.id}>
+                <TableCell>{note.name}</TableCell>
+                <TableCell>{note.description}</TableCell>
+                <TableCell>{note.status}</TableCell>
+                <TableCell>{note.dueDate}</TableCell>
+                <TableCell>
+                  <Button
+                    type="button"
+                    variation="link"
+                    onClick={() => editNoteTask(note)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variation="link"
+                    onClick={() => deleteNote(note)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </View>
       
 

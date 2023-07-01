@@ -180,7 +180,8 @@ const App = ({ signOut }) => {
   return (
     <View className="App">
       <Heading level={2}>Hello, {username} - Welcome To Task Tracker</Heading>
-      <Button onClick={signOut}>Sign Out</Button>
+      <Heading level={3}>Let's Create Or Update Task</Heading>
+      
       <View as="form" margin="3rem 0" onSubmit={createNote}>
         <Flex direction="row" justifyContent="center">
           <TextField
@@ -251,7 +252,7 @@ const App = ({ signOut }) => {
             <Button type="submit" variation="primary">
               Create Task
             </Button>
-          )}
+          )}`
         </Flex>
       </View>
 
@@ -327,6 +328,7 @@ const App = ({ signOut }) => {
           </tbody>
         </Table>
       </View>
+    <Button onClick={signOut}>Sign Out</Button>
       
 
     </View>
